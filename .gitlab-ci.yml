@@ -1,0 +1,33 @@
+stages:
+    - build
+    - push
+
+build-java-war:
+    stage: build
+    tags:
+        - docker
+    script:
+        #如果已经存在于项目的目录中，可以直接使用mvn命令进行打包成war
+        - echo $CI_PROJECT_PATH
+        - echo $CI_PROJECT_DIR
+        - echo $CI_COMMIT_SHORT_SHA
+        - rm -rf /mnt/m2/com/dsdatas/cloud/*
+        - mvn clean package -Dmaven.test.skip
+        - cd $CI_PROJECT_DIR/target
+        - cp /mnt/docker-builder/War_Dockerfile ./
+        - sudo docker build --build-arg PROJECT_NAME=$CI_PROJECT_NAME -f ./War_Dockerfile . -t registry-vpc.cn-shanghai.aliyuncs.com/dsdatas-registry/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+    only:
+        - triggers
+
+
+#推送阶段
+push-image-register:
+    stage: push
+    tags:
+        - docker
+    script:
+        - sudo docker images
+        - sudo docker push registry-vpc.cn-shanghai.aliyuncs.com/dsdatas-registry/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+        - sudo docker rmi -f registry-vpc.cn-shanghai.aliyuncs.com/dsdatas-registry/$CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+    only:
+        - triggers

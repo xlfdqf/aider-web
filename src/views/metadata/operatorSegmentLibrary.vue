@@ -1,0 +1,96 @@
+<!--运营商号段库-->
+<template>
+ <div class="table">
+   <!-- 表格 -->
+   <el-card class="box-card2">
+     <myTable :columns="columns" :dataSource="dataSource" :hasSelection="false" :hasPagination="true"
+      :total="total" @pageChange="pageChange" :loading="loading"></myTable>
+</el-card>
+ </div>
+</template>
+
+<script>
+import myTable from "@/components/myTable";
+import { getoperatorSegmentLibrary } from "@/api/login.js";
+
+export default {
+  components: { myTable },
+  data() {
+    return {
+      loading: false,
+      current: 1,
+      size: 10,
+      total: 0,
+      dataSource: [],
+      columns: [
+        {
+          prop: "carrier",
+          label: "运营商",
+          isShow: true
+        },
+        {
+          prop: "mobile",
+          label: "号段",
+          isShow: true
+        }
+      ]
+    };
+  },
+  mounted() {
+    this.query();
+  },
+  methods: {
+    // 查询列表
+    query() {
+      this.loading = true;
+      let params = { current: this.current, size: this.size };
+      getoperatorSegmentLibrary(params)
+        .then(res => {
+          this.loading = false;
+          // console.log("列表:", res);
+          this.total = res.data.total;
+          this.dataSource = res.data.records;
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    },
+    // 页码切换
+    pageChange(page) {
+      let params = { current: page.currentPage, size: page.pageSize };
+      getoperatorSegmentLibrary(params)
+        .then(res => {
+          this.total = res.data.total;
+          this.dataSource = res.data.records;
+        })
+        .catch(error => {
+          console.log(error);
+        });
+    }
+  }
+};
+</script>
+
+<style scoped>
+.box-card {
+  background-image: url("../../assets/images/home/topBg2.png");
+  background-size: 100% 100%;
+}
+.table >>> .box-card2 {
+  background-image: url("../../assets/images/home/btmBg.png");
+  background-size: 100% 100%;
+}
+
+.table >>> .el-card {
+  background-color: #080920;
+  border: none;
+}
+
+.search:hover {
+  cursor: pointer;
+}
+
+.el-button--text {
+  color: #7ecbe0;
+}
+</style>
